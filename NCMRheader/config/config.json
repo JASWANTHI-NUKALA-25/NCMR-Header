@@ -1,0 +1,19 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "nmc-form-form-customizer": {
+      "components": [
+        {
+          "entrypoint": "./lib/extensions/nmcForm/NmcFormFormCustomizer.js",
+          "manifest": "./src/extensions/nmcForm/NmcFormFormCustomizer.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "NmcFormFormCustomizerStrings": "lib/extensions/nmcForm/loc/{locale}.js",
+    "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js"
+  }
+}

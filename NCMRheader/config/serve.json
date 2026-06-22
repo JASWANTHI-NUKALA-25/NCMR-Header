@@ -1,0 +1,57 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/spfx-serve.schema.json",
+  "port": 4321,
+  "https": true,
+  "serveConfigurations": {
+    "default": {
+      "pageUrl": "https://centromotion.sharepoint.com/sites/SPDev/_layouts/15/SPListForm.aspx",
+      "formCustomizer": {
+        "componentId": "6e46ff7e-6415-49a2-a255-d4e543ec13bd",
+        "PageType": 8,
+        "RootFolder": "/sites/SPDev/Lists/NCMR",
+        "ContentTypeID": "0x0100823705A449DDD0419E03C6EF606CAE4900040135EF16A118448F996C651D4874F0",
+        "properties": {
+          "sampleText": "Value"
+        }
+      }
+    },
+    "nmcForm_NewForm": {
+      "pageUrl": "https://centromotion.sharepoint.com/sites/SPDev/_layouts/15/SPListForm.aspx",
+      "formCustomizer": {
+        "componentId": "6e46ff7e-6415-49a2-a255-d4e543ec13bd",
+        "PageType": 8,
+        "RootFolder": "/sites/SPDev/Lists/NCMR",
+        "ContentTypeID": "0x0100823705A449DDD0419E03C6EF606CAE4900040135EF16A118448F996C651D4874F0",
+        "properties": {
+          "sampleText": "Value"
+        }
+      }
+    },
+    "nmcForm_EditForm": {
+      "pageUrl": "https://centromotion.sharepoint.com/sites/SPDev/_layouts/15/SPListForm.aspx",
+      "formCustomizer": {
+        "componentId": "6e46ff7e-6415-49a2-a255-d4e543ec13bd",
+        "PageType": 6,
+        "ContentTypeID": "0x0100823705A449DDD0419E03C6EF606CAE4900040135EF16A118448F996C651D4874F0",
+        "RootFolder": "/sites/SPDev/Lists/NCMR",
+        "ID": 1,
+        "properties": {
+          "sampleText": "Value"
+        }
+      }
+    },
+    "nmcForm_ViewForm": {
+      "pageUrl": "https://centromotion.sharepoint.com/sites/SPDev/_layouts/15/SPListForm.aspx",
+      "formCustomizer": {
+        "componentId": "6e46ff7e-6415-49a2-a255-d4e543ec13bd",
+        "PageType": 4,
+        "ContentTypeID": "0x0100823705A449DDD0419E03C6EF606CAE4900040135EF16A118448F996C651D4874F0",
+        "RootFolder": "/sites/SPDev/Lists/NCMR",
+        "ID": 1,
+        "properties": {
+          "sampleText": "Value"
+        }
+      }
+    }
+  }
+}
