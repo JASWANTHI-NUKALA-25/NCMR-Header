@@ -82,6 +82,7 @@ export interface IFormContainerState {
   errorControls: { stateName: string }[];
   submitError: string;
   isSubmitting: boolean;
+  draftSaved: boolean;
   // D0
   d0StartDate: string;
   d0ReportType: string;
@@ -119,6 +120,7 @@ export default class NcmrFormContainer extends React.Component<
       modifiedBy: "",
       submitError: "",
       isSubmitting: false,
+      draftSaved: false,
       // D0
       d0StartDate: a?.D0StateDate8DReport
         ? new Date(a.D0StateDate8DReport).toISOString().split("T")[0]
@@ -169,14 +171,14 @@ export default class NcmrFormContainer extends React.Component<
     return d ? `${d}T00:00:00Z` : null;
   }
 
-  private buildPayload(isDraft: boolean, isNewForm: boolean): Record<string, unknown> {
+  private saveDraft(): void {
+    this.setState({ draftSaved: true, submitError: "" });
+  }
+
+  private buildPayload(): Record<string, unknown> {
     const payload: Record<string, unknown> = {
       Title: this.state.title.trim() || "NCMR",
     };
-
-    // TODO: restore once the correct SP column internal name for Status is confirmed
-    // if (isNewForm) { payload.Status = isDraft ? "Notice" : "Active"; }
-    void isNewForm; void isDraft;
 
     const d0Date = this.toSPDate(this.state.d0StartDate);
     if (d0Date) payload.D0StateDate8DReport = d0Date;
@@ -203,11 +205,10 @@ export default class NcmrFormContainer extends React.Component<
     return payload;
   }
 
-  private async submitForm(isDraft: boolean = false): Promise<void> {
-    this.setState({ submitError: "", isSubmitting: true });
+  private async submitForm(): Promise<void> {
+    this.setState({ submitError: "", isSubmitting: true, draftSaved: false });
     try {
-      const isNewForm = this.props.displayMode === FormDisplayMode.New;
-      const payload = this.buildPayload(isDraft, isNewForm);
+      const payload = this.buildPayload();
 
       if (this.props.itemID) {
         await TransmittalService.updateListItem(
@@ -667,18 +668,17 @@ export default class NcmrFormContainer extends React.Component<
                   <DefaultButton
                     className={styles.toolbarBtn}
                     iconProps={{ iconName: "Save" }}
-                    text={this.state.isSubmitting ? "Saving…" : "Save"}
-                    title="Save as draft (Status: Notice)"
-                    disabled={this.state.isSubmitting}
-                    onClick={() => this.submitForm(true)}
+                    text="Save"
+                    title="Save as draft (no SharePoint call)"
+                    onClick={() => this.saveDraft()}
                   />
                   <PrimaryButton
                     className={styles.toolbarBtn}
                     iconProps={{ iconName: "Trophy2" }}
                     text={this.state.isSubmitting ? "Submitting…" : "Submit"}
-                    title="Submit to SharePoint (Status: Active)"
+                    title="Submit to SharePoint"
                     disabled={this.state.isSubmitting}
-                    onClick={() => this.submitForm(false)}
+                    onClick={() => this.submitForm()}
                   />
                 </>
               ) : (
@@ -736,7 +736,7 @@ export default class NcmrFormContainer extends React.Component<
                 iconProps={{ iconName: "Save" }}
                 text={this.state.isSubmitting ? "Saving…" : "Save"}
                 disabled={this.state.isSubmitting}
-                onClick={() => this.submitForm(false)}
+                onClick={() => this.submitForm()}
               />
               <DefaultButton
                 className={styles.toolbarBtn}
@@ -757,7 +757,12 @@ export default class NcmrFormContainer extends React.Component<
           )}
         </div>
 
-        {/* ── Error banner ────────────────────────────────────────── */}
+        {/* ── Banners ─────────────────────────────────────────────── */}
+        {this.state.draftSaved && !this.state.submitError && (
+          <div className={styles.draftSavedMsg}>
+            Draft saved. Click <strong>Submit</strong> to save to SharePoint.
+          </div>
+        )}
         {this.state.submitError && (
           <div className={styles.submitErrorMsg}>
             <strong>Save failed:</strong> {this.state.submitError}
@@ -839,12 +844,8 @@ export default class NcmrFormContainer extends React.Component<
               text={this.state.isSubmitting ? "Saving…" : "Save"}
               className={styles.toolbarBtn}
               disabled={this.state.isSubmitting}
-              title={
-                isNew
-                  ? "Save as draft (Status: Notice)"
-                  : "Save changes to SharePoint list"
-              }
-              onClick={() => this.submitForm(isNew ? true : false)}
+              title={isNew ? "Save as draft (no SharePoint call)" : "Save changes to SharePoint"}
+              onClick={() => isNew ? this.saveDraft() : this.submitForm()}
             />
             {isNew && (
               <PrimaryButton
@@ -852,8 +853,8 @@ export default class NcmrFormContainer extends React.Component<
                 text={this.state.isSubmitting ? "Submitting…" : "Submit"}
                 className={styles.toolbarBtn}
                 disabled={this.state.isSubmitting}
-                title="Submit to SharePoint (Status: Active)"
-                onClick={() => this.submitForm(false)}
+                title="Submit to SharePoint"
+                onClick={() => this.submitForm()}
               />
             )}
           </div>
