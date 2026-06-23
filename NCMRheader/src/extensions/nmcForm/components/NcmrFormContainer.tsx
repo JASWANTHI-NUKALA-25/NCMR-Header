@@ -10,7 +10,6 @@ import {
   DefaultButton,
   PrimaryButton,
 } from "@fluentui/react";
-import { RichText } from "@pnp/spfx-controls-react/lib/RichText";
 import {
   FormCustomizerContext,
   IListItem,
@@ -82,7 +81,7 @@ export interface IFormContainerState {
   errorControls: { stateName: string }[];
   submitError: string;
   isSubmitting: boolean;
-  draftSaved: boolean;
+  draftMessage: string;
   // D0
   d0StartDate: string;
   d0ReportType: string;
@@ -120,7 +119,7 @@ export default class NcmrFormContainer extends React.Component<
       modifiedBy: "",
       submitError: "",
       isSubmitting: false,
-      draftSaved: false,
+      draftMessage: "",
       // D0
       d0StartDate: a?.D0StateDate8DReport
         ? new Date(a.D0StateDate8DReport).toISOString().split("T")[0]
@@ -172,7 +171,11 @@ export default class NcmrFormContainer extends React.Component<
   }
 
   private saveDraft(): void {
-    this.setState({ draftSaved: true, submitError: "" });
+    this.setState({ draftMessage: "Draft saved", submitError: "" });
+  }
+
+  private stripHtml(html: string): string {
+    return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
   }
 
   private buildPayload(): Record<string, unknown> {
@@ -186,14 +189,17 @@ export default class NcmrFormContainer extends React.Component<
     const d1Date = this.toSPDate(this.state.d1ClosingDate);
     if (d1Date) payload.D1ClosingDate = d1Date;
 
-    // Plain text fields — always safe
-    if (this.state.d1Name8DChampion) payload.D1Name8DChampion = this.state.d1Name8DChampion;
+    // Plain text fields
+    // D1Name8DChampion is a Person/Group column — excluded (needs user ID, not plain text)
     if (this.state.d0SupplierContactTier1) payload.D0SuppliercontactTier1 = this.state.d0SupplierContactTier1;
     if (this.state.d0SupplierContactTier2) payload.D0SuppliercontactTier2 = this.state.d0SupplierContactTier2;
     if (this.state.d0SupplierContactTier3) payload.D0SuppliercontactTier3 = this.state.d0SupplierContactTier3;
     if (this.state.d2PartNumber) payload.D2Partnumber = this.state.d2PartNumber;
-    if (this.state.d2What) payload.D2What = this.state.d2What;
-    if (this.state.d2Why) payload.D2Why = this.state.d2Why;
+    // D2What/D2Why are Single line of text in SP — strip HTML from RichText before saving
+    const d2WhatPlain = this.stripHtml(this.state.d2What);
+    const d2WhyPlain = this.stripHtml(this.state.d2Why);
+    if (d2WhatPlain) payload.D2What = d2WhatPlain;
+    if (d2WhyPlain) payload.D2Why = d2WhyPlain;
 
     // Dropdown fields — included only if they are Choice columns in SP.
     // If any of these cause "navigation property" errors they are Lookup columns
@@ -211,8 +217,34 @@ export default class NcmrFormContainer extends React.Component<
     return payload;
   }
 
+  private resetFields(): void {
+    this.setState({
+      title: "",
+      draftMessage: "",
+      submitError: "",
+      isSubmitting: false,
+      d0StartDate: new Date().toISOString().split("T")[0],
+      d0ReportType: "RUNNING_BUSINESS",
+      bu: "",
+      d0EscalationLevel: "",
+      d0ComplaintType: "PART_QUALITY",
+      d1Name8DChampion: "",
+      d0SupplierContactTier1: "",
+      d0SupplierContactTier2: "",
+      d0SupplierContactTier3: "",
+      d1ClosingDate: "",
+      d2PartNumber: "",
+      d2FailureCode: "",
+      d2PartGroup: "",
+      d2ProductGroup: "",
+      d2Where: "",
+      d2What: "",
+      d2Why: "",
+    });
+  }
+
   private async submitForm(): Promise<void> {
-    this.setState({ submitError: "", isSubmitting: true, draftSaved: false });
+    this.setState({ submitError: "", isSubmitting: true, draftMessage: "" });
     try {
       const payload = this.buildPayload();
 
@@ -228,7 +260,7 @@ export default class NcmrFormContainer extends React.Component<
           payload,
         );
       }
-      this.setState({ isSubmitting: false });
+      this.resetFields();
       this.props.onSave();
     } catch (err: any) {
       const msg =
@@ -527,16 +559,14 @@ export default class NcmrFormContainer extends React.Component<
               <span className={styles.fieldCaption}>
                 (What is the problem in comparison to a conforming part?)
               </span>
-              <div className={styles.richTextWrapper}>
-                <RichText
-                  value={this.state.d2What}
-                  onChange={(v) => {
-                    this.setState({ d2What: v || "" });
-                    return v;
-                  }}
-                  isEditMode={!isReadOnly}
-                />
-              </div>
+              <TextField
+                multiline
+                rows={4}
+                value={this.state.d2What}
+                onChange={(_, v) => this.setState({ d2What: v || "" })}
+                disabled={isReadOnly}
+                placeholder="Describe the problem compared to a conforming part"
+              />
             </div>
           </div>
           {/* Right */}
@@ -594,16 +624,14 @@ export default class NcmrFormContainer extends React.Component<
               <span className={styles.fieldCaption}>
                 (Why is it a problem? Explain the effect.)
               </span>
-              <div className={styles.richTextWrapper}>
-                <RichText
-                  value={this.state.d2Why}
-                  onChange={(v) => {
-                    this.setState({ d2Why: v || "" });
-                    return v;
-                  }}
-                  isEditMode={!isReadOnly}
-                />
-              </div>
+              <TextField
+                multiline
+                rows={4}
+                value={this.state.d2Why}
+                onChange={(_, v) => this.setState({ d2Why: v || "" })}
+                disabled={isReadOnly}
+                placeholder="Explain why it is a problem and its effect"
+              />
             </div>
           </div>
         </div>
@@ -674,8 +702,8 @@ export default class NcmrFormContainer extends React.Component<
                   <DefaultButton
                     className={styles.toolbarBtn}
                     iconProps={{ iconName: "Save" }}
-                    text="Save"
-                    title="Save as draft (no SharePoint call)"
+                    text="Save Draft"
+                    title="Save current tab as draft"
                     onClick={() => this.saveDraft()}
                   />
                   <PrimaryButton
@@ -764,9 +792,9 @@ export default class NcmrFormContainer extends React.Component<
         </div>
 
         {/* ── Banners ─────────────────────────────────────────────── */}
-        {this.state.draftSaved && !this.state.submitError && (
+        {this.state.draftMessage && !this.state.submitError && (
           <div className={styles.draftSavedMsg}>
-            Draft saved. Click <strong>Submit</strong> to save to SharePoint.
+            {this.state.draftMessage}. Click <strong>Submit</strong> to save to SharePoint.
           </div>
         )}
         {this.state.submitError && (
@@ -850,7 +878,7 @@ export default class NcmrFormContainer extends React.Component<
               text={this.state.isSubmitting ? "Saving…" : "Save"}
               className={styles.toolbarBtn}
               disabled={this.state.isSubmitting}
-              title={isNew ? "Save as draft (no SharePoint call)" : "Save changes to SharePoint"}
+              title={isNew ? "Save current tab as draft" : "Save changes to SharePoint"}
               onClick={() => isNew ? this.saveDraft() : this.submitForm()}
             />
             {isNew && (

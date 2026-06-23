@@ -940,6 +940,15 @@ overflow-y: "hidden";*/
   max-width: 340px;
 }
 
+/* Per-tab Save Draft button row */
+.tabSaveRow {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 0 4px;
+  border-top: 1px solid #edebe9;
+  margin-top: 16px;
+}
+
 /* Green banner shown when draft is saved locally */
 .draftSavedMsg {
   background: #dff6dd;
