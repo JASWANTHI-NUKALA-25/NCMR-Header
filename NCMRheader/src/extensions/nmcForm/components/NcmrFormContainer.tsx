@@ -80,6 +80,8 @@ export interface IFormContainerState {
   createdBy: string;
   modifiedBy: string;
   errorControls: { stateName: string }[];
+  submitError: string;
+  isSubmitting: boolean;
   // D0
   d0StartDate: string;
   d0ReportType: string;
@@ -115,6 +117,8 @@ export default class NcmrFormContainer extends React.Component<
       errorControls: [],
       createdBy: "",
       modifiedBy: "",
+      submitError: "",
+      isSubmitting: false,
       // D0
       d0StartDate: a?.D0StartDateNCMR
         ? new Date(a.D0StartDateNCMR).toISOString().split("T")[0]
@@ -161,44 +165,49 @@ export default class NcmrFormContainer extends React.Component<
     }
   }
 
-  /**
-   * isDraft = true  → Save   → Status "Notice"  (saved as draft)
-   * isDraft = false → Submit → Status "Active"   (formally submitted)
-   * Edit-mode Save  → Status is omitted so SharePoint keeps its current value
-   */
+  private toSPDate(d: string): string | null {
+    return d ? `${d}T00:00:00Z` : null;
+  }
+
+  private buildPayload(isDraft: boolean, isNewForm: boolean): Record<string, unknown> {
+    const payload: Record<string, unknown> = {
+      Title: this.state.title.trim() || "NCMR",
+    };
+
+    if (isNewForm) {
+      payload.Status = isDraft ? "Notice" : "Active";
+    }
+
+    const d0Date = this.toSPDate(this.state.d0StartDate);
+    if (d0Date) payload.D0StartDateNCMR = d0Date;
+    if (this.state.d0ReportType) payload.D0ReportType = this.state.d0ReportType;
+    if (this.state.bu) payload.BU = this.state.bu;
+    if (this.state.d0EscalationLevel) payload.D0EscalationLevel = this.state.d0EscalationLevel;
+    if (this.state.d0ComplaintType) payload.D0ComplaintType = this.state.d0ComplaintType;
+
+    if (this.state.d1Name8DChampion) payload.D1Name8DChampion = this.state.d1Name8DChampion;
+    if (this.state.d0SupplierContactTier1) payload.D0SupplierContactTier1 = this.state.d0SupplierContactTier1;
+    if (this.state.d0SupplierContactTier2) payload.D0SupplierContactTier2 = this.state.d0SupplierContactTier2;
+    if (this.state.d0SupplierContactTier3) payload.D0SupplierContactTier3 = this.state.d0SupplierContactTier3;
+    const d1Date = this.toSPDate(this.state.d1ClosingDate);
+    if (d1Date) payload.D1ClosingDate = d1Date;
+
+    if (this.state.d2PartNumber) payload.D2PartNumber = this.state.d2PartNumber;
+    if (this.state.d2FailureCode) payload.D2FailureCode = this.state.d2FailureCode;
+    if (this.state.d2PartGroup) payload.D2PartGroup = this.state.d2PartGroup;
+    if (this.state.d2ProductGroup) payload.D2ProductGroup = this.state.d2ProductGroup;
+    if (this.state.d2Where) payload.D2Where = this.state.d2Where;
+    if (this.state.d2What) payload.D2What = this.state.d2What;
+    if (this.state.d2Why) payload.D2Why = this.state.d2Why;
+
+    return payload;
+  }
+
   private async submitForm(isDraft: boolean = false): Promise<void> {
+    this.setState({ submitError: "", isSubmitting: true });
     try {
       const isNewForm = this.props.displayMode === FormDisplayMode.New;
-
-      // Only set Status on new items; edit-mode save preserves existing status
-      const statusField: { Status?: string } = isNewForm
-        ? { Status: isDraft ? "Notice" : "Active" }
-        : {};
-
-      const payload = {
-        Title: this.state.title,
-        ...statusField,
-        // D0
-        D0StartDateNCMR: this.state.d0StartDate,
-        D0ReportType: this.state.d0ReportType,
-        BU: this.state.bu,
-        D0EscalationLevel: this.state.d0EscalationLevel,
-        D0ComplaintType: this.state.d0ComplaintType,
-        // D1
-        D1Name8DChampion: this.state.d1Name8DChampion,
-        D0SupplierContactTier1: this.state.d0SupplierContactTier1,
-        D0SupplierContactTier2: this.state.d0SupplierContactTier2,
-        D0SupplierContactTier3: this.state.d0SupplierContactTier3,
-        D1ClosingDate: this.state.d1ClosingDate,
-        // D2
-        D2PartNumber: this.state.d2PartNumber,
-        D2FailureCode: this.state.d2FailureCode,
-        D2PartGroup: this.state.d2PartGroup,
-        D2ProductGroup: this.state.d2ProductGroup,
-        D2Where: this.state.d2Where,
-        D2What: this.state.d2What,
-        D2Why: this.state.d2Why,
-      };
+      const payload = this.buildPayload(isDraft, isNewForm);
 
       if (this.props.itemID) {
         await TransmittalService.updateListItem(
@@ -212,9 +221,16 @@ export default class NcmrFormContainer extends React.Component<
           payload,
         );
       }
+      this.setState({ isSubmitting: false });
       this.props.onSave();
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      const msg =
+        err?.data?.responseBody?.["odata.error"]?.message?.value ||
+        err?.message ||
+        err?.toString() ||
+        "Unknown error saving to SharePoint";
+      console.error("submitForm error:", err);
+      this.setState({ submitError: msg, isSubmitting: false });
     }
   }
 
@@ -621,13 +637,22 @@ export default class NcmrFormContainer extends React.Component<
           <div className={styles.metaRow1}>
             <div className={styles.titleSection}>
               <span className={styles.metaLabelBold}>Title</span>
-              {!isNew && item?.Title && (
-                <span className={styles.itemTitleOrange}>
-                  {item.Title}
-                  {a?.D0EscalationLevelDisplay
-                    ? ` (${a.D0EscalationLevelDisplay})`
-                    : ""}
-                </span>
+              {isNew ? (
+                <TextField
+                  value={this.state.title}
+                  onChange={(_, v) => this.setState({ title: v || "" })}
+                  placeholder="Enter NCMR title"
+                  className={styles.titleInput}
+                />
+              ) : (
+                item?.Title && (
+                  <span className={styles.itemTitleOrange}>
+                    {item.Title}
+                    {a?.D0EscalationLevelDisplay
+                      ? ` (${a.D0EscalationLevelDisplay})`
+                      : ""}
+                  </span>
+                )
               )}
             </div>
 
@@ -642,15 +667,17 @@ export default class NcmrFormContainer extends React.Component<
                   <DefaultButton
                     className={styles.toolbarBtn}
                     iconProps={{ iconName: "Save" }}
-                    text="Save"
+                    text={this.state.isSubmitting ? "Saving…" : "Save"}
                     title="Save as draft (Status: Notice)"
+                    disabled={this.state.isSubmitting}
                     onClick={() => this.submitForm(true)}
                   />
                   <PrimaryButton
                     className={styles.toolbarBtn}
                     iconProps={{ iconName: "Trophy2" }}
-                    text="Submit"
+                    text={this.state.isSubmitting ? "Submitting…" : "Submit"}
                     title="Submit to SharePoint (Status: Active)"
+                    disabled={this.state.isSubmitting}
                     onClick={() => this.submitForm(false)}
                   />
                 </>
@@ -707,8 +734,8 @@ export default class NcmrFormContainer extends React.Component<
               <PrimaryButton
                 className={`${styles.toolbarBtn} ${styles.saveBtn}`}
                 iconProps={{ iconName: "Save" }}
-                text="Save"
-                title="Save changes to SharePoint list"
+                text={this.state.isSubmitting ? "Saving…" : "Save"}
+                disabled={this.state.isSubmitting}
                 onClick={() => this.submitForm(false)}
               />
               <DefaultButton
@@ -729,6 +756,13 @@ export default class NcmrFormContainer extends React.Component<
             </div>
           )}
         </div>
+
+        {/* ── Error banner ────────────────────────────────────────── */}
+        {this.state.submitError && (
+          <div className={styles.submitErrorMsg}>
+            <strong>Save failed:</strong> {this.state.submitError}
+          </div>
+        )}
 
         {/* ── Tabs ───────────────────────────────────────────────── */}
         <div className={styles.tabsContainer}>
@@ -802,16 +836,22 @@ export default class NcmrFormContainer extends React.Component<
             />
             <DefaultButton
               iconProps={{ iconName: "Save" }}
-              text="Save"
+              text={this.state.isSubmitting ? "Saving…" : "Save"}
               className={styles.toolbarBtn}
-              title={isNew ? "Save as draft (Status: Notice)" : "Save changes to SharePoint list"}
+              disabled={this.state.isSubmitting}
+              title={
+                isNew
+                  ? "Save as draft (Status: Notice)"
+                  : "Save changes to SharePoint list"
+              }
               onClick={() => this.submitForm(isNew ? true : false)}
             />
             {isNew && (
               <PrimaryButton
                 iconProps={{ iconName: "Trophy2" }}
-                text="Submit"
+                text={this.state.isSubmitting ? "Submitting…" : "Submit"}
                 className={styles.toolbarBtn}
+                disabled={this.state.isSubmitting}
                 title="Submit to SharePoint (Status: Active)"
                 onClick={() => this.submitForm(false)}
               />

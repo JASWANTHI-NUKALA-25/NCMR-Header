@@ -932,3 +932,21 @@ overflow-y: "hidden";*/
   background: #fff;
   flex-wrap: wrap;
 }
+
+/* Title input for new items */
+.titleInput {
+  flex: 1;
+  min-width: 180px;
+  max-width: 340px;
+}
+
+/* Error banner shown when SharePoint save fails */
+.submitErrorMsg {
+  background: #fde7e9;
+  border: 1px solid #d13438;
+  color: #a4262c;
+  padding: 8px 12px;
+  border-radius: 3px;
+  font-size: 13px;
+  margin: 8px 16px;
+}
