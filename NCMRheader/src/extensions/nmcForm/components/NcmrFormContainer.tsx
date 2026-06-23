@@ -174,9 +174,9 @@ export default class NcmrFormContainer extends React.Component<
       Title: this.state.title.trim() || "NCMR",
     };
 
-    if (isNewForm) {
-      payload.Status = isDraft ? "Notice" : "Active";
-    }
+    // TODO: restore once the correct SP column internal name for Status is confirmed
+    // if (isNewForm) { payload.Status = isDraft ? "Notice" : "Active"; }
+    void isNewForm; void isDraft;
 
     const d0Date = this.toSPDate(this.state.d0StartDate);
     if (d0Date) payload.D0StartDateNCMR = d0Date;
