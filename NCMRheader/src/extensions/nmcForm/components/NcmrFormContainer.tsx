@@ -180,27 +180,36 @@ export default class NcmrFormContainer extends React.Component<
       Title: this.state.title.trim() || "NCMR",
     };
 
+    // Date fields
     const d0Date = this.toSPDate(this.state.d0StartDate);
     if (d0Date) payload.D0StateDate8DReport = d0Date;
-    if (this.state.d0ReportType) payload.D0Reporttype = this.state.d0ReportType;
-    if (this.state.bu) payload.D0BUPlant = this.state.bu;
-    if (this.state.d0EscalationLevel) payload.D0Escalationlevel = this.state.d0EscalationLevel;
-    if (this.state.d0ComplaintType) payload.D0Complainttype = this.state.d0ComplaintType;
+    const d1Date = this.toSPDate(this.state.d1ClosingDate);
+    if (d1Date) payload.D1ClosingDate = d1Date;
 
+    // Plain text fields — always safe
     if (this.state.d1Name8DChampion) payload.D1Name8DChampion = this.state.d1Name8DChampion;
     if (this.state.d0SupplierContactTier1) payload.D0SuppliercontactTier1 = this.state.d0SupplierContactTier1;
     if (this.state.d0SupplierContactTier2) payload.D0SuppliercontactTier2 = this.state.d0SupplierContactTier2;
     if (this.state.d0SupplierContactTier3) payload.D0SuppliercontactTier3 = this.state.d0SupplierContactTier3;
-    const d1Date = this.toSPDate(this.state.d1ClosingDate);
-    if (d1Date) payload.D1ClosingDate = d1Date;
-
     if (this.state.d2PartNumber) payload.D2Partnumber = this.state.d2PartNumber;
-    if (this.state.d2FailureCode) payload.D2FailureCode = this.state.d2FailureCode;
-    if (this.state.d2PartGroup) payload.D2Partgroup = this.state.d2PartGroup;
-    if (this.state.d2ProductGroup) payload.D2Productgroup = this.state.d2ProductGroup;
-    if (this.state.d2Where) payload.D2Where = this.state.d2Where;
     if (this.state.d2What) payload.D2What = this.state.d2What;
     if (this.state.d2Why) payload.D2Why = this.state.d2Why;
+
+    // Dropdown fields — included only if they are Choice columns in SP.
+    // If any of these cause "navigation property" errors they are Lookup columns
+    // and need to be sent as { FieldNameId: numericId } instead.
+    if (this.state.d0ReportType) payload.D0Reporttype = this.state.d0ReportType;
+    if (this.state.d0EscalationLevel) payload.D0Escalationlevel = this.state.d0EscalationLevel;
+    if (this.state.d0ComplaintType) payload.D0Complainttype = this.state.d0ComplaintType;
+    if (this.state.d2Where) payload.D2Where = this.state.d2Where;
+
+    // The following fields are excluded until their SP column type is confirmed.
+    // If they are Choice columns: re-enable them below.
+    // If they are Lookup columns: send as { FieldNameId: numericId } instead.
+    // if (this.state.bu) payload.D0BUPlant = this.state.bu;
+    // if (this.state.d2FailureCode) payload.D2FailureCode = this.state.d2FailureCode;
+    // if (this.state.d2PartGroup) payload.D2Partgroup = this.state.d2PartGroup;
+    // if (this.state.d2ProductGroup) payload.D2Productgroup = this.state.d2ProductGroup;
 
     return payload;
   }
