@@ -120,26 +120,26 @@ export default class NcmrFormContainer extends React.Component<
       submitError: "",
       isSubmitting: false,
       // D0
-      d0StartDate: a?.D0StartDateNCMR
-        ? new Date(a.D0StartDateNCMR).toISOString().split("T")[0]
+      d0StartDate: a?.D0StateDate8DReport
+        ? new Date(a.D0StateDate8DReport).toISOString().split("T")[0]
         : new Date().toISOString().split("T")[0],
-      d0ReportType: a?.D0ReportType || "RUNNING_BUSINESS",
-      bu: a?.BU || "",
-      d0EscalationLevel: a?.D0EscalationLevel || "",
-      d0ComplaintType: a?.D0ComplaintType || "PART_QUALITY",
+      d0ReportType: a?.D0Reporttype || "RUNNING_BUSINESS",
+      bu: a?.D0BUPlant || "",
+      d0EscalationLevel: a?.D0Escalationlevel || "",
+      d0ComplaintType: a?.D0Complainttype || "PART_QUALITY",
       // D1
       d1Name8DChampion: a?.D1Name8DChampion || "",
-      d0SupplierContactTier1: a?.D0SupplierContactTier1 || "",
-      d0SupplierContactTier2: a?.D0SupplierContactTier2 || "",
-      d0SupplierContactTier3: a?.D0SupplierContactTier3 || "",
+      d0SupplierContactTier1: a?.D0SuppliercontactTier1 || "",
+      d0SupplierContactTier2: a?.D0SuppliercontactTier2 || "",
+      d0SupplierContactTier3: a?.D0SuppliercontactTier3 || "",
       d1ClosingDate: a?.D1ClosingDate
         ? new Date(a.D1ClosingDate).toISOString().split("T")[0]
         : "",
       // D2
-      d2PartNumber: a?.D2PartNumber || "",
+      d2PartNumber: a?.D2Partnumber || "",
       d2FailureCode: a?.D2FailureCode || "",
-      d2PartGroup: a?.D2PartGroup || "",
-      d2ProductGroup: a?.D2ProductGroup || "",
+      d2PartGroup: a?.D2Partgroup || "",
+      d2ProductGroup: a?.D2Productgroup || "",
       d2Where: a?.D2Where || "",
       d2What: a?.D2What || "",
       d2Why: a?.D2Why || "",
@@ -179,23 +179,23 @@ export default class NcmrFormContainer extends React.Component<
     void isNewForm; void isDraft;
 
     const d0Date = this.toSPDate(this.state.d0StartDate);
-    if (d0Date) payload.D0StartDateNCMR = d0Date;
-    if (this.state.d0ReportType) payload.D0ReportType = this.state.d0ReportType;
-    if (this.state.bu) payload.BU = this.state.bu;
-    if (this.state.d0EscalationLevel) payload.D0EscalationLevel = this.state.d0EscalationLevel;
-    if (this.state.d0ComplaintType) payload.D0ComplaintType = this.state.d0ComplaintType;
+    if (d0Date) payload.D0StateDate8DReport = d0Date;
+    if (this.state.d0ReportType) payload.D0Reporttype = this.state.d0ReportType;
+    if (this.state.bu) payload.D0BUPlant = this.state.bu;
+    if (this.state.d0EscalationLevel) payload.D0Escalationlevel = this.state.d0EscalationLevel;
+    if (this.state.d0ComplaintType) payload.D0Complainttype = this.state.d0ComplaintType;
 
     if (this.state.d1Name8DChampion) payload.D1Name8DChampion = this.state.d1Name8DChampion;
-    if (this.state.d0SupplierContactTier1) payload.D0SupplierContactTier1 = this.state.d0SupplierContactTier1;
-    if (this.state.d0SupplierContactTier2) payload.D0SupplierContactTier2 = this.state.d0SupplierContactTier2;
-    if (this.state.d0SupplierContactTier3) payload.D0SupplierContactTier3 = this.state.d0SupplierContactTier3;
+    if (this.state.d0SupplierContactTier1) payload.D0SuppliercontactTier1 = this.state.d0SupplierContactTier1;
+    if (this.state.d0SupplierContactTier2) payload.D0SuppliercontactTier2 = this.state.d0SupplierContactTier2;
+    if (this.state.d0SupplierContactTier3) payload.D0SuppliercontactTier3 = this.state.d0SupplierContactTier3;
     const d1Date = this.toSPDate(this.state.d1ClosingDate);
     if (d1Date) payload.D1ClosingDate = d1Date;
 
-    if (this.state.d2PartNumber) payload.D2PartNumber = this.state.d2PartNumber;
+    if (this.state.d2PartNumber) payload.D2Partnumber = this.state.d2PartNumber;
     if (this.state.d2FailureCode) payload.D2FailureCode = this.state.d2FailureCode;
-    if (this.state.d2PartGroup) payload.D2PartGroup = this.state.d2PartGroup;
-    if (this.state.d2ProductGroup) payload.D2ProductGroup = this.state.d2ProductGroup;
+    if (this.state.d2PartGroup) payload.D2Partgroup = this.state.d2PartGroup;
+    if (this.state.d2ProductGroup) payload.D2Productgroup = this.state.d2ProductGroup;
     if (this.state.d2Where) payload.D2Where = this.state.d2Where;
     if (this.state.d2What) payload.D2What = this.state.d2What;
     if (this.state.d2Why) payload.D2Why = this.state.d2Why;
