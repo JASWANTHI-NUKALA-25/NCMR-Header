@@ -203,13 +203,10 @@ export default class NcmrFormContainer extends React.Component<
     if (this.state.d0ComplaintType) payload.D0Complainttype = this.state.d0ComplaintType;
     if (this.state.d2Where) payload.D2Where = this.state.d2Where;
 
-    // The following fields are excluded until their SP column type is confirmed.
-    // If they are Choice columns: re-enable them below.
-    // If they are Lookup columns: send as { FieldNameId: numericId } instead.
-    // if (this.state.bu) payload.D0BUPlant = this.state.bu;
-    // if (this.state.d2FailureCode) payload.D2FailureCode = this.state.d2FailureCode;
-    // if (this.state.d2PartGroup) payload.D2Partgroup = this.state.d2PartGroup;
-    // if (this.state.d2ProductGroup) payload.D2Productgroup = this.state.d2ProductGroup;
+    if (this.state.bu) payload.D0BUPlant = this.state.bu;
+    if (this.state.d2FailureCode) payload.D2FailureCode = this.state.d2FailureCode;
+    if (this.state.d2PartGroup) payload.D2Partgroup = this.state.d2PartGroup;
+    if (this.state.d2ProductGroup) payload.D2Productgroup = this.state.d2ProductGroup;
 
     return payload;
   }
